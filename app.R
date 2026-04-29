@@ -194,7 +194,7 @@ ui <- fluidPage(
   
   br(),
   
-  downloadButton("download_pdf", "Télécharger la facture PDF")
+  downloadButton("download_html", "Télécharger la facture")
 )
 
 server <- function(input, output, session) {
@@ -303,64 +303,62 @@ server <- function(input, output, session) {
     calculs()
   })
   
-  output$download_pdf <- downloadHandler(
+  output$download_html <- downloadHandler(
+  
+  filename = function() {
+    paste0("facture_", input$numero, ".html")
+  },
+  
+  contentType = "text/html",
+  
+  content = function(file) {
     
-    filename = function() {
-      paste0("facture_", input$numero, ".pdf")
-    },
+    if (!grepl("^\\(\\d{3}\\) \\d{3}-\\d{4}$", input$telephone_client)) {
+      showNotification(
+        "Numéro de téléphone invalide. Format attendu : (123) 123-1234",
+        type = "error"
+      )
+      return(NULL)
+    }
     
-    contentType = "application/pdf",
+    montant <- input$montant
+    if (is.null(montant) || is.na(montant)) montant <- 0
     
-    content = function(file) {
+    if (input$inclure_taxes) {
+      tps <- montant * 0.05
+      tvq <- montant * 0.09975
+      taxes <- tps + tvq
+      total <- montant + taxes
+    } else {
+      tps <- 0
+      tvq <- 0
+      taxes <- 0
+      total <- montant
+    }
+    
+    ent <- entreprise()
+    date_facture <- format(input$date, "%d-%m-%Y")
+    
+    # Sécurisation HTML
+    e_nom <- htmltools::htmlEscape(ent$nom)
+    e_adresse <- htmltools::htmlEscape(ent$adresse)
+    e_tel <- htmltools::htmlEscape(ent$tel)
+    e_mail <- htmltools::htmlEscape(ent$mail)
+    
+    client <- htmltools::htmlEscape(input$client)
+    adresse_client <- htmltools::htmlEscape(input$adresse_client)
+    telephone_client <- htmltools::htmlEscape(input$telephone_client)
+    
+    description <- htmltools::htmlEscape(input$description)
+    description <- gsub("\n", "<br>", description)
+    
+    numero <- htmltools::htmlEscape(input$numero)
+    numero_tps <- htmltools::htmlEscape(input$numero_tps)
+    numero_tvq <- htmltools::htmlEscape(input$numero_tvq)
+    
+    if (input$inclure_taxes) {
       
-      if (!grepl("^\\(\\d{3}\\) \\d{3}-\\d{4}$", input$telephone_client)) {
-        showNotification(
-          "Numéro de téléphone invalide. Format attendu : (123) 123-1234",
-          type = "error"
-        )
-        return(NULL)
-      }
-      
-      montant <- input$montant
-      
-      if (is.null(montant) || is.na(montant)) {
-        montant <- 0
-      }
-      
-      if (input$inclure_taxes) {
-        tps <- montant * 0.05
-        tvq <- montant * 0.09975
-        taxes <- tps + tvq
-        total <- montant + taxes
-      } else {
-        tps <- 0
-        tvq <- 0
-        taxes <- 0
-        total <- montant
-      }
-      
-      ent <- entreprise()
-      date_facture <- format(input$date, "%d-%m-%Y")
-      
-      e_nom <- htmlEscape(ent$nom)
-      e_adresse <- htmlEscape(ent$adresse)
-      e_tel <- htmlEscape(ent$tel)
-      e_mail <- htmlEscape(ent$mail)
-      
-      client <- htmlEscape(input$client)
-      adresse_client <- htmlEscape(input$adresse_client)
-      telephone_client <- htmlEscape(input$telephone_client)
-      
-      description <- htmlEscape(input$description)
-      description <- gsub("\n", "<br>", description)
-      
-      numero <- htmlEscape(input$numero)
-      numero_tps <- htmlEscape(input$numero_tps)
-      numero_tvq <- htmlEscape(input$numero_tvq)
-      
-      if (input$inclure_taxes) {
-        
-        section_bas <- glue::glue('
+      section_bas <- glue::glue('
 <div class="bottom">
 
   <table>
@@ -396,10 +394,10 @@ server <- function(input, output, session) {
 
 </div>
 ')
-        
-      } else {
-        
-        section_bas <- glue::glue('
+      
+    } else {
+      
+      section_bas <- glue::glue('
 <div class="bottom-simple">
   <table>
     <tr>
@@ -409,9 +407,9 @@ server <- function(input, output, session) {
   </table>
 </div>
 ')
-      }
-      
-      html <- glue::glue('
+    }
+    
+    html <- glue::glue('
 <!DOCTYPE html>
 <html>
 <head>
@@ -427,7 +425,6 @@ server <- function(input, output, session) {
     font-family: Arial, sans-serif;
     font-size: 15px;
     margin: 20px;
-    color: #222;
   }}
 
   .top {{
@@ -479,24 +476,14 @@ server <- function(input, output, session) {
     line-height: 1.8;
   }}
 
-  .items th {{
-    border: 1px solid #999;
-    border-top: 20px solid #b3b3b3;
-    text-align: left;
-    font-weight: normal;
-  }}
-
   .items td {{
-    border: 1px solid #999;
     height: 90px;
     vertical-align: top;
     white-space: normal;
-    overflow-wrap: break-word;
   }}
 
   .montant {{
     text-align: right;
-    white-space: nowrap;
   }}
 
   .bottom {{
@@ -511,6 +498,7 @@ server <- function(input, output, session) {
     margin-top: 20px;
   }}
 </style>
+
 </head>
 
 <body>
@@ -565,31 +553,15 @@ server <- function(input, output, session) {
 </body>
 </html>
 ')
+    
+      writeLines(html, file, useBytes = TRUE)
       
-      temp_dir <- tempdir()
-      timestamp <- format(Sys.time(), "%Y%m%d_%H%M%S")
-      
-      temp_html <- file.path(temp_dir, paste0("facture_", timestamp, ".html"))
-      temp_pdf <- file.path(temp_dir, paste0("facture_", timestamp, ".pdf"))
-      
-      writeLines(html, temp_html, useBytes = TRUE)
-      
-      pagedown::chrome_print(
-        input = temp_html,
-        output = temp_pdf,
-        timeout = 120
-      )
-      
-      file.copy(temp_pdf, file, overwrite = TRUE)
-      
+      # Incrément facture
       numero_actuel <- as.numeric(input$numero)
       
       if (!is.na(numero_actuel)) {
         prochain_numero <- numero_actuel + 1
-        
         writeLines(as.character(prochain_numero), fichier_numero)
-        
-        numero_courant(prochain_numero)
         
         updateTextInput(
           session,
