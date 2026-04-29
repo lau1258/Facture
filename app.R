@@ -5,16 +5,16 @@ library(quarto)
 
 # Infos fixes de l'entreprise
 entreprise <- list(
-  nom = "Alain Lacaille",
-  adresse = "3200 rue Jessica, Sainte-Julienne, Qc, J0K 2T0",
-  tel = "(514) 978-0922",
-  mail = "alainlacaille@gmail.com"
+  nom = "",
+  adresse = "",
+  tel = "",
+  mail = ""
 )
 
 # Numéros de taxes fixes
 taxes_entreprise <- list(
-  tps = "775172026 RT0001",
-  tvq = "1056811814 TQ0001"
+  tps = "",
+  tvq = ""
 )
 
 # Fichier qui garde le prochain numéro de facture
