@@ -471,6 +471,7 @@ server <- function(input, output, session) {
     min-height: 110px;
     line-height: 1.8;
     margin-top: 20px;
+    margin-bottom: 15px;
   }}
 
   .items {{
@@ -478,19 +479,21 @@ server <- function(input, output, session) {
   }}
 
   .items th {{
-    border: 1px solid #999;
+    border-top: 15px solid #b3b3b3;
     border-bottom: none;
     text-align: left;
     font-weight: normal;
+    padding: 10px;
   }}
 
   .items td {{
     border: 1px solid #999;
+    border-top: none;
     height: 90px;
     vertical-align: top;
     white-space: normal;
     overflow-wrap: break-word;
-    padding: 10px;
+    padding: 5px 10px 10px 10px;
   }}
 
   .montant {{
@@ -508,14 +511,6 @@ server <- function(input, output, session) {
     width: 40%;
     margin-left: auto;
     margin-top: 20px;
-  }}
-  
-  .zone-vide {{
-    border-left: 1px solid #999;
-    border-right: 1px solid #999;
-    height: 25px;
-    margin-top: 15px;
-    border-top: 15px solid #b3b3b3
   }}
   
 </style>
@@ -554,7 +549,7 @@ server <- function(input, output, session) {
   {adresse_client}<br>
   {telephone_client}
 </div>
-<div class="zone-vide"></div>
+
 <table class="items">
   <tr>
     <th><b>Description</b></th>
