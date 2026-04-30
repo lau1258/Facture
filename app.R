@@ -358,11 +358,11 @@ server <- function(input, output, session) {
     
     if (input$inclure_taxes) {
       
-      section_bas <- glue::glue('
+        section_bas <- glue::glue('
 <div class="bottom">
 
   <table>
-    <tr><td colspan="4"># taxe</td></tr>
+    <tr><td colspan="4"><b># taxe</b></td></tr>
     <tr>
       <td>TPS</td>
       <td>{numero_tps}</td>
@@ -387,17 +387,17 @@ server <- function(input, output, session) {
       <td class="montant">{format_argent(taxes)}</td>
     </tr>
     <tr>
-      <td><b>Montant total</b></td>
+      <td><b>Total</b></td>
       <td class="montant"><b>{format_argent(total)}</b></td>
     </tr>
   </table>
 
 </div>
 ')
-      
-    } else {
-      
-      section_bas <- glue::glue('
+        
+      } else {
+        
+        section_bas <- glue::glue('
 <div class="bottom-simple">
   <table>
     <tr>
@@ -407,9 +407,9 @@ server <- function(input, output, session) {
   </table>
 </div>
 ')
-    }
-    
-    html <- glue::glue('
+      }
+      
+      html <- glue::glue('
 <!DOCTYPE html>
 <html>
 <head>
@@ -425,6 +425,7 @@ server <- function(input, output, session) {
     font-family: Arial, sans-serif;
     font-size: 15px;
     margin: 20px;
+    color: #222;
   }}
 
   .top {{
@@ -436,7 +437,7 @@ server <- function(input, output, session) {
 
   .entreprise {{
     border: 1px solid #999;
-    border-top: 20px solid #b3b3b3;
+    border-top: 15px solid #b3b3b3;
     padding: 10px;
     min-height: 110px;
     line-height: 1.8;
@@ -445,7 +446,8 @@ server <- function(input, output, session) {
   .titre {{
     text-align: center;
     font-size: 18px;
-    margin-bottom: 5px;
+    margin-bottom: 0px;
+    border-bottom: 15px solid #b3b3b3;
   }}
 
   table {{
@@ -462,28 +464,38 @@ server <- function(input, output, session) {
     text-align: center;
   }}
 
-  .barre {{
-    background-color: #b3b3b3;
-    height: 20px;
-    margin-top: 20px;
-  }}
-
   .client {{
     border: 1px solid #999;
-    border-top: 20px solid #b3b3b3;
+    border-top: 15px solid #b3b3b3;
     padding: 10px;
     min-height: 110px;
     line-height: 1.8;
+    margin-top: 20px;
+  }}
+
+  .items {{
+    margin-top: 0px;
+  }}
+
+  .items th {{
+    border: 1px solid #999;
+    border-bottom: none;
+    text-align: left;
+    font-weight: normal;
   }}
 
   .items td {{
+    border: 1px solid #999;
     height: 90px;
     vertical-align: top;
     white-space: normal;
+    overflow-wrap: break-word;
+    padding: 10px;
   }}
 
   .montant {{
     text-align: right;
+    white-space: nowrap;
   }}
 
   .bottom {{
@@ -497,8 +509,16 @@ server <- function(input, output, session) {
     margin-left: auto;
     margin-top: 20px;
   }}
+  
+  .zone-vide {{
+    border-left: 1px solid #999;
+    border-right: 1px solid #999;
+    height: 25px;
+    margin-top: 15px;
+    border-top: 15px solid #b3b3b3
+  }}
+  
 </style>
-
 </head>
 
 <body>
@@ -506,7 +526,7 @@ server <- function(input, output, session) {
 <div class="top">
 
   <div class="entreprise">
-    {e_nom}<br>
+    <b>{e_nom}</b><br>
     {e_adresse}<br>
     {e_tel}<br>
     <span style="color:#0070C0; text-decoration: underline;">{e_mail}</span>
@@ -528,17 +548,13 @@ server <- function(input, output, session) {
 
 </div>
 
-<div class="barre"></div>
-
 <div class="client">
   <b>Vendu à</b><br>
   {client}<br>
   {adresse_client}<br>
   {telephone_client}
 </div>
-
-<div class="barre"></div>
-
+<div class="zone-vide"></div>
 <table class="items">
   <tr>
     <th><b>Description</b></th>
